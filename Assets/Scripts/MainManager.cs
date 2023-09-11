@@ -12,13 +12,15 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+
+    static private int[] HighScores = new int[3];
+
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
     // Start is called before the first frame update
     void Start()
     {
@@ -72,5 +74,19 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        if(m_Points > HighScores[0])
+        {
+            HighScores[2] = HighScores[1];
+            HighScores[1] = HighScores[0];
+            HighScores[0] = m_Points;
+        }else if(m_Points > HighScores[1])
+        {
+            HighScores[2] = HighScores[1];
+            HighScores[1] = m_Points;
+        }else if(m_Points > HighScores[2])
+        {
+            HighScores[2] = m_Points;
+        }
+        Debug.Log("1st " + HighScores[0] + " 2nd " + HighScores[1] + " 3rd " + HighScores[2]);
     }
 }
