@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class MainManager : MonoBehaviour
     public Text ScoreText;
     public GameObject GameOverText;
 
-    static private int[] HighScores = new int[3];
+    static public int[] HighScores = new int[3];
+    static public string[] Names = new string[3];
 
     
     private bool m_Started = false;
@@ -21,6 +23,11 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
+
+    void Awake()
+    {
+        LoadData();
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -74,19 +81,73 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
-        if(m_Points > HighScores[0])
+        CheckScore();
+    }
+
+    public void EnterHighScoreMenu()
+    {
+        CheckScore();
+        SceneManager.LoadScene(0);
+        SaveData();
+    }
+
+    private void CheckScore()
+    {
+        if (m_Points > HighScores[0])
         {
             HighScores[2] = HighScores[1];
             HighScores[1] = HighScores[0];
             HighScores[0] = m_Points;
-        }else if(m_Points > HighScores[1])
+        }
+        else if (m_Points > HighScores[1])
         {
             HighScores[2] = HighScores[1];
             HighScores[1] = m_Points;
-        }else if(m_Points > HighScores[2])
+        }
+        else if (m_Points > HighScores[2])
         {
             HighScores[2] = m_Points;
         }
         Debug.Log("1st " + HighScores[0] + " 2nd " + HighScores[1] + " 3rd " + HighScores[2]);
     }
+
+    private class HighScoreData
+    {
+        public int[] highScoresTemp;
+        public string[] namesTemp;
+    }
+
+    public void SaveData()
+    {
+        HighScoreData tempScores = new HighScoreData();
+        tempScores.highScoresTemp = HighScores;
+        tempScores.namesTemp = Names;
+
+        string save = JsonUtility.ToJson(tempScores);
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", save);
+    }
+
+    public void LoadData()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string load = File.ReadAllText(path);
+            HighScoreData loadData = JsonUtility.FromJson<HighScoreData>(load);
+            Names = loadData.namesTemp;
+            HighScores = loadData.highScoresTemp;
+            Debug.Log(path);
+        }
+    }
+
+    public void Exit()
+    {
+        SaveData();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.ExitPlaymode();
+#else
+        Application.Quit();
+#endif
+    }
+
 }
